@@ -36,7 +36,6 @@ public class IndexingTest extends TestCase {
 			document.add(new Field("city", text[i], Field.Store.YES, Field.Index.ANALYZED));
 			indexWriter.addDocument(document);
 		}
-
 		indexWriter.close();
 	}
 
