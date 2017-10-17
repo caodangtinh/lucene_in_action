@@ -1,6 +1,7 @@
 package com.tinhcao.lucene.test;
 
 import java.io.IOException;
+import java.nio.channels.WritableByteChannel;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -57,5 +58,45 @@ public class IndexingTest extends TestCase {
 		IndexWriter indexWriter = getWriter();
 		assertEquals(ids.length, indexWriter.numDocs());
 		indexWriter.close();
+	}
+
+	@Test
+	public void testHasDeletion() throws IOException {
+		assertFalse(getWriter().hasDeletions());
+	}
+
+	@Test
+	public void testDeleteBeforeOptimize() throws IOException {
+		IndexWriter indexWriter = getWriter();
+		assertEquals(2, indexWriter.numDocs());
+		indexWriter.deleteDocuments(new Term("id", "1"));
+		indexWriter.commit();
+		assertTrue(indexWriter.hasDeletions());
+		assertEquals(2, indexWriter.maxDoc());
+		assertEquals(1, indexWriter.numDocs());
+		indexWriter.close();
+	}
+
+	@Test
+	public void testDeleteAfterOptimize() throws IOException {
+		IndexWriter indexWriter = getWriter();
+		assertEquals(2, indexWriter.numDocs());
+		indexWriter.deleteDocuments(new Term("id", "1"));
+		indexWriter.optimize();
+		indexWriter.commit();
+		assertFalse(indexWriter.hasDeletions());
+		assertEquals(1, indexWriter.maxDoc());
+		assertEquals(1, indexWriter.numDocs());
+		indexWriter.close();
+	}
+
+	@Test
+	public void testDeleteAll() throws IOException {
+		IndexWriter indexWriter = getWriter();
+		assertEquals(2, indexWriter.maxDoc());
+		indexWriter.deleteAll();
+		indexWriter.commit();
+		assertEquals(0, indexWriter.maxDoc());
+
 	}
 }
