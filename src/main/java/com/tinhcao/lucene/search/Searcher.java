@@ -42,7 +42,7 @@ public class Searcher {
 				+ " miliseconds that match query: " + query);
 		for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
 			Document document = indexSearcher.doc(scoreDoc.doc);
-			System.out.println(document.get("fullpath"));
+			System.out.println(document.get("fullpath") + " with score : " + scoreDoc.score);
 		}
 		indexSearcher.close();
 	}
