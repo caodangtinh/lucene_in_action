@@ -32,7 +32,6 @@ public class Indexer {
 		}
 		long end = System.currentTimeMillis();
 		System.out.println("Indexing " + numIndexed + " files took " + (end - start) + " miliseconds");
-
 	}
 
 	public Indexer(String indexDir) throws IOException {
@@ -76,4 +75,5 @@ public class Indexer {
 		Document doc = buildDocument(f);
 		writer.addDocument(doc);
 	}
+	
 }
