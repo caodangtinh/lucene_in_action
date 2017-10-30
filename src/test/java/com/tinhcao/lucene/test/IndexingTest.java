@@ -1,7 +1,6 @@
 package com.tinhcao.lucene.test;
 
 import java.io.IOException;
-import java.nio.channels.WritableByteChannel;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
