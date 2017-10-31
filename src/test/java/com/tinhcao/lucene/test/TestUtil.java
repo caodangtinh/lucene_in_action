@@ -21,10 +21,13 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.Directory;
 
 import java.io.IOException;
+import java.util.List;
 import java.io.File;
 
 public class TestUtil {
@@ -75,5 +78,12 @@ public class TestUtil {
       }
       dir.delete();
     }
+  }
+  
+  public static void display(Document document) {
+	  List<Fieldable> fields = document.getFields();
+	  for (Fieldable fieldable : fields) {
+		  System.out.println(fieldable.name() + " " + fieldable.stringValue());
+	  }
   }
 }
