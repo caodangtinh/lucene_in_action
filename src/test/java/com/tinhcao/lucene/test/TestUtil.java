@@ -1,5 +1,13 @@
 package com.tinhcao.lucene.test;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Fieldable;
+import org.apache.lucene.search.Filter;
+
 /**
  * Copyright Manning Publications Co.
  *
@@ -16,19 +24,11 @@ package com.tinhcao.lucene.test;
 */
 
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.Filter;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.Fieldable;
-import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.Directory;
-
-import java.io.IOException;
-import java.util.List;
-import java.io.File;
+import org.apache.lucene.store.FSDirectory;
 
 public class TestUtil {
   public static boolean hitsIncludeTitle(IndexSearcher searcher, TopDocs hits, String title)
