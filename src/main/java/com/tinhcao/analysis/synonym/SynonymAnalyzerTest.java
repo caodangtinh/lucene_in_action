@@ -19,7 +19,6 @@ import java.io.StringReader;
 
 import junit.framework.TestCase;
 
-
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.store.RAMDirectory;
@@ -41,99 +40,90 @@ import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 
 // From chapter 4
 public class SynonymAnalyzerTest extends TestCase {
-  private IndexSearcher searcher;
-  private static SynonymAnalyzer synonymAnalyzer =
-                      new SynonymAnalyzer(new TestSynonymEngine());
+	private IndexSearcher searcher;
+	private static SynonymAnalyzer synonymAnalyzer = new SynonymAnalyzer(new TestSynonymEngine());
 
-  public void setUp() throws Exception {
-    RAMDirectory directory = new RAMDirectory();
+	public void setUp() throws Exception {
+		RAMDirectory directory = new RAMDirectory();
 
-    IndexWriter writer = new IndexWriter(directory,
-                                         synonymAnalyzer,  //#1  
-                                         IndexWriter.MaxFieldLength.UNLIMITED);
-    Document doc = new Document();
-    doc.add(new Field("content",
-                      "The quick brown fox jumps over the lazy dog",
-                      Field.Store.YES,
-                      Field.Index.ANALYZED));  //#2
-    writer.addDocument(doc);
-                                  
-    writer.close();
+		IndexWriter writer = new IndexWriter(directory, synonymAnalyzer, // #1
+				IndexWriter.MaxFieldLength.UNLIMITED);
+		Document doc = new Document();
+		doc.add(new Field("content", "The quick brown fox jumps over the lazy dog", Field.Store.YES,
+				Field.Index.ANALYZED)); // #2
+		writer.addDocument(doc);
 
-    searcher = new IndexSearcher(directory, true);
-  }
+		writer.close();
 
-  public void tearDown() throws Exception {
-    searcher.close();
-  }
+		searcher = new IndexSearcher(directory, true);
+	}
 
-  public void testJumps() throws Exception {
-    TokenStream stream =
-      synonymAnalyzer.tokenStream("contents",                   // #A
-                                  new StringReader("jumps"));   // #A
-    TermAttribute term = stream.addAttribute(TermAttribute.class);
-    PositionIncrementAttribute posIncr = stream.addAttribute(PositionIncrementAttribute.class);
+	public void tearDown() throws Exception {
+		searcher.close();
+	}
 
-    int i = 0;
-    String[] expected = new String[]{"jumps",              // #B
-                                     "hops",               // #B
-                                     "leaps"};             // #B
-    while(stream.incrementToken()) {
-      assertEquals(expected[i], term.term());
+	public void testJumps() throws Exception {
+		TokenStream stream = synonymAnalyzer.tokenStream("contents", // #A
+				new StringReader("jumps")); // #A
+		TermAttribute term = stream.addAttribute(TermAttribute.class);
+		PositionIncrementAttribute posIncr = stream.addAttribute(PositionIncrementAttribute.class);
 
-      int expectedPos;      // #C
-      if (i == 0) {         // #C
-        expectedPos = 1;    // #C
-      } else {              // #C
-        expectedPos = 0;    // #C
-      }                     // #C
-      assertEquals(expectedPos,                      // #C
-                   posIncr.getPositionIncrement());  // #C
-      i++;
-    }
-    assertEquals(3, i);
-  }
+		int i = 0;
+		String[] expected = new String[] { "jumps", // #B
+				"hops", // #B
+				"leaps" }; // #B
+		while (stream.incrementToken()) {
+			assertEquals(expected[i], term.term());
 
-  /*
-    #A Analyze with SynonymAnalyzer
-    #B Check for correct synonyms
-    #C Verify synonyms positions
-  */
+			int expectedPos; // #C
+			if (i == 0) { // #C
+				expectedPos = 1; // #C
+			} else { // #C
+				expectedPos = 0; // #C
+			} // #C
+			assertEquals(expectedPos, // #C
+					posIncr.getPositionIncrement()); // #C
+			i++;
+		}
+		assertEquals(3, i);
+	}
 
-  public void testSearchByAPI() throws Exception {
+	/*
+	 * #A Analyze with SynonymAnalyzer #B Check for correct synonyms #C Verify
+	 * synonyms positions
+	 */
 
-    TermQuery tq = new TermQuery(new Term("content", "hops"));  //#1
-    assertEquals(1, TestUtil.hitCount(searcher, tq));
+	public void testSearchByAPI() throws Exception {
 
-    PhraseQuery pq = new PhraseQuery();    //#2
-    pq.add(new Term("content", "fox"));    //#2
-    pq.add(new Term("content", "hops"));   //#2
-    assertEquals(1, TestUtil.hitCount(searcher, pq));
-  }
+		TermQuery tq = new TermQuery(new Term("content", "hops")); // #1
+		assertEquals(1, TestUtil.hitCount(searcher, tq));
 
-  /*
-    #1 Search for "hops"
-    #2 Search for "fox hops"
-  */
+		PhraseQuery pq = new PhraseQuery(); // #2
+		pq.add(new Term("content", "fox")); // #2
+		pq.add(new Term("content", "hops")); // #2
+		assertEquals(1, TestUtil.hitCount(searcher, pq));
+	}
 
-  public void testWithQueryParser() throws Exception {
-    Query query = new QueryParser(Version.LUCENE_30,                   // 1
-                                  "content",                                // 1
-                                  synonymAnalyzer).parse("\"fox jumps\"");  // 1
-    assertEquals(1, TestUtil.hitCount(searcher, query));                   // 1
-    System.out.println("With SynonymAnalyzer, \"fox jumps\" parses to " +
-                                         query.toString("content"));
+	/*
+	 * #1 Search for "hops" #2 Search for "fox hops"
+	 */
 
-    query = new QueryParser(Version.LUCENE_30,                         // 2
-                            "content",                                      // 2
-                            new StandardAnalyzer(Version.LUCENE_30)).parse("\"fox jumps\""); // B
-    assertEquals(1, TestUtil.hitCount(searcher, query));                   // 2
-    System.out.println("With StandardAnalyzer, \"fox jumps\" parses to " +
-                                         query.toString("content"));
-  }
+	public void testWithQueryParser() throws Exception {
+		Query query = new QueryParser(Version.LUCENE_30, // 1
+				"content", // 1
+				synonymAnalyzer).parse("\"fox jumps\""); // 1
+		assertEquals(1, TestUtil.hitCount(searcher, query)); // 1
+		System.out.println("With SynonymAnalyzer, \"fox jumps\" parses to " + query.toString("content"));
 
-  /*
-    #1 SynonymAnalyzer finds the document
-    #2 StandardAnalyzer also finds document
-  */
+		query = new QueryParser(Version.LUCENE_30, // 2
+				"content", // 2
+				new StandardAnalyzer(Version.LUCENE_30)).parse("\"fox jumps\""); // B
+		assertEquals(1, TestUtil.hitCount(searcher, query)); // 2
+		System.out.println("With StandardAnalyzer, \"fox jumps\" parses to " + query.toString("content"));
+	}
+
+	/*
+	 * #1 SynonymAnalyzer finds the document #2 StandardAnalyzer also finds
+	 * document
+	 */
 }
